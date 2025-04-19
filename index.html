@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plant Leaf Disease Detection</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #e0f7fa;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 500px;
+            background: white;
+            padding: 20px;
+            margin: 50px auto;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        input[type="file"] {
+            margin: 10px 0;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            background-color: #00796b;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #004d40;
+        }
+        img {
+            max-width: 100%;
+            margin-top: 20px;
+            display: none;
+        }
+        .result {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Upload a Leaf Image</h2>
+        <form id="upload-form" enctype="multipart/form-data">
+            <input type="file" name="file" id="file-input" required>
+            <br>
+            <button type="submit">Predict</button>
+        </form>
+
+        <img id="preview" src="#" alt="Image Preview">
+        <p class="result" id="prediction"></p>
+    </div>
+
+    <script>
+        const form = document.getElementById('upload-form');
+        const fileInput = document.getElementById('file-input');
+        const preview = document.getElementById('preview');
+        const prediction = document.getElementById('prediction');
+    
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+    
+            const file = fileInput.files[0];
+            if (!file) {
+                prediction.innerText = "Please select an image file.";
+                return;
+            }
+    
+            const formData = new FormData();
+            formData.append('file', file);
+    
+            // Preview image
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                preview.src = e.target.result;
+                preview.style.display = "block";
+            };
+            reader.readAsDataURL(file);
+    
+            prediction.innerText = "Analyzing...";
+    
+            // AJAX request
+            fetch('/predict', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) {
+                    prediction.innerText = `Error: ${data.error}`;
+                } else {
+                    prediction.innerText = `Prediction: ${data.class} (Confidence: ${(data.confidence * 100).toFixed(2)}%)`;
+                }
+            })
+            .catch(err => {
+                prediction.innerText = `Something went wrong: ${err}`;
+            });
+        });
+    </script>
+    
+</body>
+</html>
